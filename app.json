@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0E27"
-      }
+      },
+      "package": "com.raiyan2002.todomate"
     },
     "web": {
       "bundler": "metro",
