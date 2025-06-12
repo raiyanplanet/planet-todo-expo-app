@@ -6,6 +6,7 @@ import React from "react";
 import {
   Animated,
   Dimensions,
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -110,7 +111,7 @@ export default function Page() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.gradient}>
+      <LinearGradient colors={["#0A0E27", "#0A0E27"]} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoid}>
@@ -125,7 +126,10 @@ export default function Page() {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.iconContainer}>
-                <Ionicons name="lock-closed" size={40} color="#fff" />
+                <Image
+                  source={require("@/assets/images/icon.png")}
+                  style={{ width: 100, height: 100, marginBottom: 10 }}
+                />
               </View>
               <Text style={styles.title}>Welcome Back</Text>
               <Text style={styles.subtitle}>Sign in to your account</Text>
@@ -188,7 +192,7 @@ export default function Page() {
                 onPress={onSignInPress}
                 disabled={isLoading}>
                 <LinearGradient
-                  colors={["#667eea", "#764ba2"]}
+                  colors={["#4FACFE", "#4FACFE"]}
                   style={styles.buttonGradient}>
                   {isLoading ? (
                     <View style={styles.loadingContainer}>
@@ -223,9 +227,11 @@ export default function Page() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#ffffff",
   },
   gradient: {
     flex: 1,
+    backgroundColor: "#ffffff",
   },
   keyboardAvoid: {
     flex: 1,
@@ -233,63 +239,69 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
+    maxWidth: 400,
+    alignSelf: "center",
+    width: "100%",
   },
   header: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 48,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontSize: 28,
+    fontWeight: "700",
     color: "#fff",
-    marginBottom: 8,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 15,
+    color: "#fff",
+    fontWeight: "400",
   },
   formContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 32,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    marginBottom: 32,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    height: 56,
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   inputIcon: {
     marginRight: 12,
+    opacity: 0.7,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#333",
+    color: "#0f172a",
+    fontWeight: "400",
   },
   passwordInput: {
     paddingRight: 40,
@@ -298,42 +310,46 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 16,
     padding: 4,
+    opacity: 0.7,
   },
   signInButton: {
     borderRadius: 12,
     marginTop: 8,
-    marginBottom: 16,
-    shadowColor: "#667eea",
+    marginBottom: 20,
+    shadowColor: "#3b82f6",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 4,
   },
   signInButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonGradient: {
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
+    backgroundColor: "#4FACFE",
   },
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+    letterSpacing: 0.3,
   },
   forgotPassword: {
     alignItems: "center",
+    paddingVertical: 8,
   },
   forgotPasswordText: {
-    color: "#667eea",
+    color: "#3b82f6",
     fontSize: 14,
     fontWeight: "500",
   },
@@ -341,16 +357,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
   },
   footerText: {
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "#64748b",
     fontSize: 14,
+    fontWeight: "400",
   },
   signUpLink: {
     marginLeft: 4,
   },
   signUpText: {
-    color: "#fff",
+    color: "#3b82f6",
     fontSize: 14,
     fontWeight: "600",
   },

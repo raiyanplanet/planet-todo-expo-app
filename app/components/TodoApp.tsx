@@ -1,6 +1,16 @@
-// app/components/TodoApp.tsx
 import { useUser } from "@clerk/clerk-expo";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+  BriefcaseBusiness,
+  CalendarCheck,
+  Clock3,
+  Menu,
+  Pencil,
+  Search,
+  ShoppingBag,
+  Trash2,
+  UserRound,
+} from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -13,7 +23,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { supabase } from "../lib/supabase"; // Adjust path as needed
+import { supabase } from "../lib/supabase";
+import SignOutButton from "./SignOutButton";
 
 const { width } = Dimensions.get("window");
 
@@ -43,12 +54,28 @@ const TodoApp = () => {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (user?.id) {
       fetchTodos();
     }
   }, [user]);
+
+  // Filter todos based on search query
+  const filterTodos = (todoList: Todo[]) => {
+    if (!searchQuery.trim()) {
+      return todoList;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return todoList.filter(
+      (todo) =>
+        todo.title.toLowerCase().includes(query) ||
+        (todo.description && todo.description.toLowerCase().includes(query)) ||
+        todo.category.toLowerCase().includes(query)
+    );
+  };
 
   const fetchTodos = async () => {
     try {
@@ -230,56 +257,140 @@ const TodoApp = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "work":
-        return "💼";
+        return <BriefcaseBusiness opacity={"90%"} />;
       case "shopping":
-        return "🛍️";
+        return <ShoppingBag opacity={"90%"} />;
       default:
-        return "👤";
+        return <UserRound opacity={"90%"} />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "work":
-        return "#4A90E2";
+        return ["#FFBF78", "#764ba2"];
       case "shopping":
-        return "#F5A623";
+        return ["#9BC09C", "#f5576c"];
       default:
-        return "#7B68EE";
+        return ["#4facfe", "#00f2fe"];
     }
   };
 
-  const completedTodos = todos.filter((todo) => todo.completed);
-  const pendingTodos = todos.filter((todo) => !todo.completed);
+  // Apply search filter to todos
+  const filteredTodos = filterTodos(todos);
+  const completedTodos = filteredTodos.filter((todo) => todo.completed);
+  const pendingTodos = filteredTodos.filter((todo) => !todo.completed);
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.date}>
-          {new Date().toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </Text>
-        <Text style={styles.title}>My Todo List</Text>
-      </View>
-
-      {/* Debug Info */}
-      <View style={styles.debugInfo}>
-        <Text style={styles.debugText}>User ID: {user?.id}</Text>
-        <Text style={styles.debugText}>Total Todos: {todos.length}</Text>
-        <TouchableOpacity onPress={fetchTodos} style={styles.refreshButton}>
-          <Text style={styles.refreshText}>🔄 Refresh</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Todo List */}
       <ScrollView style={styles.todoList} showsVerticalScrollIndicator={false}>
-        {/* Pending Todos */}
-        {pendingTodos.length === 0 && completedTodos.length === 0 ? (
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity style={styles.menuButton}>
+              <Menu color={"#fff"} opacity={"90%"} />
+            </TouchableOpacity>
+            <SignOutButton />
+          </View>
+
+          <Text style={styles.date}>
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </Text>
+          <Text style={styles.greeting}>
+            Hi, {user?.emailAddresses[0].emailAddress}
+          </Text>
+          <Text style={styles.subtitle}>Be productive today</Text>
+
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Search color={"#fff"} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search task"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Text style={{ color: "#fff", fontSize: 20 }}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Task Progress Card - Show only when not searching */}
+        {!searchQuery.trim() && (
+          <View style={styles.progressCard}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressTitle}>Task Progress</Text>
+              <Text style={styles.progressPercentage}>
+                {Math.round(
+                  (todos.filter((t) => t.completed).length /
+                    Math.max(todos.length, 1)) *
+                    100
+                )}
+                %
+              </Text>
+            </View>
+            <Text style={styles.progressSubtitle}>
+              {todos.filter((t) => t.completed).length}/{todos.length} task done
+            </Text>
+            <View style={styles.progressBarContainer}>
+              <View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: `${
+                      (todos.filter((t) => t.completed).length /
+                        Math.max(todos.length, 1)) *
+                      100
+                    }%`,
+                  },
+                ]}
+              />
+            </View>
+            <View style={styles.progressFooter}>
+              <Text style={styles.progressDate}>
+                {new Date().toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </Text>
+              <Text style={styles.progressStatus}>In progress</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Todo List */}
+
+        {/* Today's Tasks Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery.trim() ? `Search Results` : "Today's task"}
+          </Text>
+          <Text style={styles.sectionCount}>
+            {searchQuery.trim()
+              ? `${filteredTodos.length} found`
+              : `${pendingTodos.length} tasks`}
+          </Text>
+        </View>
+
+        {/* Show message when searching but no results */}
+        {searchQuery.trim() && filteredTodos.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No tasks found</Text>
+            <Text style={styles.emptyStateSubtext}>
+              Try searching with different keywords
+            </Text>
+          </View>
+        ) : pendingTodos.length === 0 &&
+          completedTodos.length === 0 &&
+          !searchQuery.trim() ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>No todos yet!</Text>
             <Text style={styles.emptyStateSubtext}>
@@ -288,20 +399,39 @@ const TodoApp = () => {
           </View>
         ) : (
           <>
-            {pendingTodos.map((todo) => (
-              <View key={todo.id} style={styles.todoItem}>
-                <View style={styles.todoContent}>
-                  <View style={styles.todoHeader}>
-                    <View
-                      style={[
-                        styles.categoryIcon,
-                        { backgroundColor: getCategoryColor(todo.category) },
-                      ]}>
-                      <Text style={styles.categoryEmoji}>
-                        {getCategoryIcon(todo.category)}
+            {/* Pending Todos */}
+            {pendingTodos.map((todo, index) => (
+              <View key={todo.id} style={styles.todoCard}>
+                <View style={styles.todoHeader}>
+                  <View
+                    style={[
+                      styles.categoryIcon,
+                      {
+                        backgroundColor: getCategoryColor(todo.category)[0],
+                      },
+                    ]}>
+                    <Text style={styles.categoryEmoji}>
+                      {getCategoryIcon(todo.category)}
+                    </Text>
+                  </View>
+                  <View style={styles.todoContent}>
+                    <Text style={styles.todoTitle}>{todo.title}</Text>
+                    {todo.description && (
+                      <Text style={styles.todoDescription} numberOfLines={2}>
+                        {todo.description}
+                      </Text>
+                    )}
+                    <View style={styles.todoMeta}>
+                      <Text style={styles.todoTime}>
+                        <Clock3 size={11} /> {todo.due_time} -{" "}
+                        {new Date(todo.due_date || "").toLocaleDateString(
+                          "en-US",
+                          { month: "short", day: "numeric" }
+                        )}
                       </Text>
                     </View>
-                    <Text style={styles.todoTitle}>{todo.title}</Text>
+                  </View>
+                  <View style={styles.todoActions}>
                     <TouchableOpacity
                       style={styles.checkbox}
                       onPress={() =>
@@ -310,21 +440,18 @@ const TodoApp = () => {
                       <View style={styles.checkboxInner} />
                     </TouchableOpacity>
                   </View>
-                  {todo.description && (
-                    <Text style={styles.todoDescription}>
-                      {todo.description}
-                    </Text>
-                  )}
-                  {todo.due_time && (
-                    <Text style={styles.todoTime}>{todo.due_time}</Text>
-                  )}
                 </View>
-                <View style={styles.todoActions}>
-                  <TouchableOpacity onPress={() => openEditModal(todo)}>
-                    <Text style={styles.editButton}>✏️</Text>
+
+                <View style={styles.todoFooter}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => openEditModal(todo)}>
+                    <Pencil color={"#fff"} width={30} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteTodo(todo.id)}>
-                    <Text style={styles.deleteButton}>🗑️</Text>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => deleteTodo(todo.id)}>
+                    <Trash2 color={"#fff"} width={30} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -333,36 +460,41 @@ const TodoApp = () => {
             {/* Completed Section */}
             {completedTodos.length > 0 && (
               <View style={styles.completedSection}>
-                <Text style={styles.sectionTitle}>Completed</Text>
+                <Text style={styles.sectionTitle}>
+                  <CalendarCheck />
+                  Completed
+                </Text>
                 {completedTodos.map((todo) => (
                   <View
                     key={todo.id}
-                    style={[styles.todoItem, styles.completedTodo]}>
-                    <View style={styles.todoContent}>
-                      <View style={styles.todoHeader}>
-                        <View
-                          style={[
-                            styles.categoryIcon,
-                            { backgroundColor: "#ccc" },
-                          ]}>
-                          <Text style={styles.categoryEmoji}>
-                            {getCategoryIcon(todo.category)}
-                          </Text>
-                        </View>
+                    style={[styles.todoCard, styles.completedCard]}>
+                    <View style={styles.todoHeader}>
+                      <View
+                        style={[
+                          styles.categoryIcon,
+                          { backgroundColor: "#e0e0e0" },
+                        ]}>
+                        <Text style={styles.categoryEmoji}>
+                          {getCategoryIcon(todo.category)}
+                        </Text>
+                      </View>
+                      <View style={styles.todoContent}>
                         <Text style={[styles.todoTitle, styles.completedText]}>
                           {todo.title}
                         </Text>
-                        <TouchableOpacity
-                          style={[styles.checkbox, styles.checkedBox]}
-                          onPress={() =>
-                            toggleTodoComplete(todo.id, todo.completed)
-                          }>
-                          <Text style={styles.checkmark}>✓</Text>
-                        </TouchableOpacity>
                       </View>
+                      <TouchableOpacity
+                        style={[styles.checkbox, styles.checkedBox]}
+                        onPress={() =>
+                          toggleTodoComplete(todo.id, todo.completed)
+                        }>
+                        <Text style={styles.checkmark}>✓</Text>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={() => deleteTodo(todo.id)}>
-                      <Text style={styles.deleteButton}>🗑️</Text>
+                    <TouchableOpacity
+                      style={styles.actionButton}
+                      onPress={() => deleteTodo(todo.id)}>
+                      <Trash2 color={"#fff"} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -380,6 +512,7 @@ const TodoApp = () => {
           setEditingTodo(null);
           setShowAddModal(true);
         }}>
+        <Text style={styles.addButtonIcon}>+</Text>
         <Text style={styles.addButtonText}>Add New Task</Text>
       </TouchableOpacity>
 
@@ -405,7 +538,7 @@ const TodoApp = () => {
               style={styles.input}
               value={formData.title}
               onChangeText={(text) => setFormData({ ...formData, title: text })}
-              placeholder="Pick up Milk"
+              placeholder="Enter task title"
               placeholderTextColor="#999"
             />
 
@@ -414,7 +547,7 @@ const TodoApp = () => {
               {[
                 { key: "personal", icon: "👤", label: "Personal" },
                 { key: "work", icon: "💼", label: "Work" },
-                { key: "shopping", icon: "🛍️", label: "Shopping" },
+                { key: "shopping", icon: "🛒", label: "Shopping" },
               ].map((cat) => (
                 <TouchableOpacity
                   key={cat.key}
@@ -478,7 +611,7 @@ const TodoApp = () => {
           <TouchableOpacity
             style={styles.saveButton}
             onPress={editingTodo ? updateTodo : addTodo}>
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>Save Task</Text>
           </TouchableOpacity>
 
           {showDatePicker && (
@@ -517,317 +650,600 @@ const TodoApp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#0A0E27",
+    paddingTop: 50,
   },
+
   header: {
-    backgroundColor: "#6B46C1",
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 30,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    paddingHorizontal: 14,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 12,
   },
+
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  menuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(134, 134, 134, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    backdropFilter: "blur(10px)",
+
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+
+  menuIcon: {
+    fontSize: 18,
+    color: "#FFFFFF",
+    fontWeight: "300",
+  },
+
+  homeButton: {
+    padding: 5,
+    color: "#fff",
+  },
+
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+    backdropFilter: "blur(10px)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+
+  bellIcon: {
+    fontSize: 18,
+    color: "#FFFFFF",
+  },
+
+  notificationDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FF6B6B",
+    shadowColor: "#FF6B6B",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+
   date: {
+    fontSize: 16,
     color: "rgba(255, 255, 255, 0.8)",
-    fontSize: 14,
-    marginBottom: 5,
+    fontWeight: "400",
+    marginBottom: 4,
   },
-  title: {
-    color: "white",
+
+  greeting: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 4,
   },
-  debugInfo: {
-    backgroundColor: "#E3F2FD",
-    padding: 10,
-    margin: 10,
-    borderRadius: 8,
+
+  subtitle: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.7)",
+    marginBottom: 24,
+    fontWeight: "300",
+  },
+
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    gap: 5,
+    paddingVertical: 12,
+    backdropFilter: "blur(10px)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+
+  searchIcon: {
+    fontSize: 16,
+    marginRight: 12,
+    opacity: 0.7,
+  },
+
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "400",
+  },
+
+  progressCard: {
+    marginVertical: 15,
+    paddingVertical: 24,
+    paddingHorizontal: 12,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  progressTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#4FACFE",
+  },
+
+  progressPercentage: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
+  progressSubtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginBottom: 16,
+  },
+
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 4,
+    marginBottom: 16,
+    overflow: "hidden",
+  },
+
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#4FACFE",
+    borderRadius: 4,
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+  },
+
+  progressFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  debugText: {
+
+  progressDate: {
     fontSize: 12,
-    color: "#1976D2",
+    color: "rgba(255, 255, 255, 0.7)",
+    fontWeight: "500",
   },
-  refreshButton: {
-    backgroundColor: "#1976D2",
-    padding: 5,
-    borderRadius: 5,
-  },
-  refreshText: {
-    color: "white",
+
+  progressStatus: {
     fontSize: 12,
+    color: "#4ECDC4",
+    fontWeight: "600",
+    backgroundColor: "rgba(78, 205, 196, 0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
+
   todoList: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingHorizontal: 24,
   },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#666",
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: "#999",
-  },
-  todoItem: {
-    backgroundColor: "white",
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
+
+  sectionHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 16,
+    marginTop: 8,
+  },
+
+  sectionTitle: {
+    fontSize: 25,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#4FACFE",
+  },
+
+  sectionCount: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.6)",
+    fontWeight: "500",
+  },
+
+  todoCard: {
+    backgroundColor: "rgba(83, 83, 83, 0.08)",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    backdropFilter: "blur(10px)",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  todoContent: {
-    flex: 1,
-  },
+
   todoHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
+    alignItems: "flex-start",
+    marginBottom: 12,
   },
+
   categoryIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
+
   categoryEmoji: {
-    fontSize: 16,
+    fontSize: 20,
   },
-  todoTitle: {
+
+  todoContent: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+    paddingRight: 12,
   },
+
+  todoTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 6,
+    lineHeight: 24,
+  },
+
   todoDescription: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 5,
-    marginLeft: 44,
+    color: "rgba(255, 255, 255, 0.7)",
+    lineHeight: 20,
+    marginBottom: 8,
   },
+
+  todoMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
   todoTime: {
     fontSize: 12,
-    color: "#888",
-    marginLeft: 44,
+    color: "rgba(255, 255, 255, 0.6)",
+    fontWeight: "500",
   },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#DDD",
+
+  todoActions: {
     justifyContent: "center",
     alignItems: "center",
   },
+
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+
   checkboxInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
     backgroundColor: "transparent",
   },
+
   checkedBox: {
-    backgroundColor: "#6B46C1",
-    borderColor: "#6B46C1",
+    backgroundColor: "#4ECDC4",
+    borderColor: "#4ECDC4",
+    shadowColor: "#4ECDC4",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
+
   checkmark: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
-  todoActions: {
+
+  todoFooter: {
     flexDirection: "row",
+    justifyContent: "flex-end",
     alignItems: "center",
-    gap: 15,
+    gap: 12,
+    marginTop: 8,
   },
-  editButton: {
-    fontSize: 18,
+
+  actionButton: {
+    display: "flex",
+
+    width: 56,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    backdropFilter: "blur(5px)",
   },
-  deleteButton: {
-    fontSize: 18,
+
+  actionButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
+
   completedSection: {
-    marginTop: 20,
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
-  },
-  completedTodo: {
+
+  completedCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
     opacity: 0.7,
   },
+
   completedText: {
     textDecorationLine: "line-through",
-    color: "#888",
+    opacity: 0.6,
   },
-  addButton: {
-    backgroundColor: "#6B46C1",
-    margin: 20,
-    paddingVertical: 18,
-    borderRadius: 15,
+
+  emptyState: {
     alignItems: "center",
-    shadowColor: "#6B46C1",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    paddingVertical: 60,
   },
-  addButtonText: {
-    color: "white",
+
+  emptyStateText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.8)",
+    marginBottom: 8,
+  },
+
+  emptyStateSubtext: {
     fontSize: 16,
-    fontWeight: "bold",
+    color: "rgba(255, 255, 255, 0.5)",
+    textAlign: "center",
   },
+
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4FACFE",
+    margin: 24,
+    paddingVertical: 18,
+    borderRadius: 20,
+    shadowColor: "#4FACFE",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+
+  addButtonIcon: {
+    fontSize: 24,
+    color: "#FFFFFF",
+    fontWeight: "300",
+    marginRight: 8,
+  },
+
+  addButtonText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+
   modalContainer: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#0A0E27",
   },
+
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 14,
+    paddingTop: 30,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
+
   closeButton: {
-    fontSize: 20,
-    color: "#666",
+    fontSize: 24,
+    color: "rgba(255, 255, 255, 0.8)",
+    fontWeight: "300",
   },
+
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
+
   modalContent: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 24,
   },
+
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
-    marginBottom: 10,
+    color: "#FFFFFF",
+    marginBottom: 12,
     marginTop: 20,
   },
+
   input: {
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: 16,
-    backgroundColor: "#F8F9FA",
+    color: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(10px)",
   },
+
+  notesInput: {
+    height: 120,
+    textAlignVertical: "top",
+    marginBottom: 20,
+  },
+
   categoryContainer: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
   },
+
   categoryButton: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 2,
+    borderColor: "transparent",
+    backdropFilter: "blur(10px)",
   },
+
   selectedCategory: {
-    backgroundColor: "#6B46C1",
-    borderColor: "#6B46C1",
+    borderColor: "#4FACFE",
+    backgroundColor: "rgba(79, 172, 254, 0.15)",
+    shadowColor: "#4FACFE",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
+
   categoryButtonIcon: {
-    fontSize: 16,
+    fontSize: 24,
+    marginBottom: 8,
   },
+
   categoryLabel: {
     fontSize: 14,
-    color: "#666",
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.7)",
   },
+
   selectedCategoryLabel: {
-    color: "white",
+    color: "#4FACFE",
+    fontWeight: "600",
   },
+
   dateTimeContainer: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
   },
+
   dateButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
-  dateButtonText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  dateIcon: {
-    fontSize: 16,
-  },
+
   timeButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
-    minWidth: 100,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
+
+  dateButtonText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "500",
+  },
+
   timeButtonText: {
     fontSize: 16,
-    color: "#333",
+    color: "#FFFFFF",
+    fontWeight: "500",
   },
+
+  dateIcon: {
+    fontSize: 16,
+  },
+
   timeIcon: {
     fontSize: 16,
   },
-  notesInput: {
-    height: 100,
-    textAlignVertical: "top",
-  },
+
   saveButton: {
-    backgroundColor: "#6B46C1",
-    margin: 20,
+    backgroundColor: "#4FACFE",
+    marginHorizontal: 24,
+    marginBottom: 40,
     paddingVertical: 18,
-    borderRadius: 15,
+    borderRadius: 20,
     alignItems: "center",
+    shadowColor: "#4FACFE",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
+
   saveButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
 

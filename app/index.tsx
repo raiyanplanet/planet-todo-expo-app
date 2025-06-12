@@ -1,12 +1,11 @@
-import SignOutButton from "@/app/components/SignOutButton";
 import { SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import React from "react";
 import {
   Animated,
   Dimensions,
+  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -37,13 +36,10 @@ export default function Page() {
   }, []);
 
   return (
-    <LinearGradient colors={["#F8F9FA", "#EDF2F7"]} style={styles.container}>
+    <LinearGradient colors={["#0A0E27", "#0A0E27"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <SignedIn>
           <TodoApp />
-          <View style={styles.signOutContainer}>
-            <SignOutButton />
-          </View>
         </SignedIn>
 
         <SignedOut>
@@ -56,58 +52,39 @@ export default function Page() {
               },
             ]}>
             <View style={styles.welcomeSection}>
-              <View style={styles.logoContainer}>
-                <Ionicons name="checkmark-done" size={48} color="#6B46C1" />
+              <View>
+                <Image
+                  source={require("@/assets/images/icon.png")}
+                  style={{ width: 100, height: 100, marginBottom: 10 }}
+                />
               </View>
-              <Text style={styles.welcomeTitle}>Welcome to Todo App</Text>
+              <Text style={styles.welcomeTitle}>Planet Todo</Text>
               <Text style={styles.welcomeSubtitle}>
-                Organize your life, one task at a time
+                Simple task management for focused work
               </Text>
             </View>
 
             <View style={styles.authButtons}>
               <Link href="/(auth)/sign-in" asChild>
                 <TouchableOpacity
-                  style={[styles.authButton, styles.signInButton]}
+                  style={styles.signInButton}
                   activeOpacity={0.8}>
-                  <LinearGradient
-                    colors={["#6B46C1", "#805AD5"]}
-                    style={styles.buttonGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}>
-                    <Text style={styles.authButtonText}>Sign In</Text>
-                    <Ionicons
-                      name="arrow-forward"
-                      size={20}
-                      color="white"
-                      style={styles.buttonIcon}
-                    />
-                  </LinearGradient>
+                  <Text style={styles.signintext}>Sign In</Text>
                 </TouchableOpacity>
               </Link>
 
               <Link href="/(auth)/sign-up" asChild>
                 <TouchableOpacity
-                  style={[styles.authButton, styles.signUpButton]}
+                  style={styles.signUpButton}
                   activeOpacity={0.8}>
-                  <Text style={[styles.authButtonText, styles.signUpText]}>
-                    Create Account
-                  </Text>
-                  <Ionicons
-                    name="person-add"
-                    size={20}
-                    color="#6B46C1"
-                    style={styles.buttonIcon}
-                  />
+                  <Text style={styles.signuptext}>Create Account</Text>
                 </TouchableOpacity>
               </Link>
             </View>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                By continuing, you agree to our{" "}
-                <Text style={styles.linkText}>Terms</Text> and{" "}
-                <Text style={styles.linkText}>Privacy Policy</Text>
+                By continuing, you agree to our Terms and Privacy Policy
               </Text>
             </View>
           </Animated.View>
@@ -120,6 +97,7 @@ export default function Page() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f0f4f8",
   },
   safeArea: {
     flex: 1,
@@ -129,100 +107,96 @@ const styles = StyleSheet.create({
     top: 50,
     right: 20,
     zIndex: 1000,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    gap: 10,
+  },
+  homeButton: {
+    padding: 5,
   },
   authContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(107, 70, 193, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
+    paddingHorizontal: 32,
+    paddingBottom: 100,
   },
   welcomeSection: {
     alignItems: "center",
-    marginBottom: 60,
+    marginBottom: 48,
   },
   welcomeTitle: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#2D3748",
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#fff",
     marginBottom: 10,
     textAlign: "center",
+    letterSpacing: -0.3,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: "#718096",
+    color: "#fff",
     textAlign: "center",
-    maxWidth: width * 0.8,
+    maxWidth: width * 0.85,
     lineHeight: 24,
   },
   authButtons: {
     width: "100%",
-    gap: 15,
-  },
-  authButton: {
-    borderRadius: 12,
-    overflow: "hidden",
-    shadowColor: "#6B46C1",
-
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buttonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    gap: 16,
   },
   signInButton: {
-    backgroundColor: "#6B46C1",
-    color: "#fff",
-    borderRadius: 10,
+    backgroundColor: "#4FACFE",
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#4F46E5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   signUpButton: {
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF1CA",
+    borderColor: "#E5E7EB",
+    shadowColor: "#333446",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  authButtonText: {
+  signintext: {
     fontSize: 16,
     fontWeight: "600",
-    textAlign: "center",
     color: "#fff",
   },
-  signUpText: {
-    color: "#6B46C1",
-  },
-  buttonIcon: {
-    marginLeft: 8,
+  signuptext: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333446",
   },
   footer: {
     position: "absolute",
     bottom: 40,
     width: "100%",
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
   },
   footerText: {
     fontSize: 12,
-    color: "#A0AEC0",
+    color: "#9CA3AF",
     textAlign: "center",
     lineHeight: 18,
-  },
-  linkText: {
-    color: "#6B46C1",
-    textDecorationLine: "underline",
   },
 });
