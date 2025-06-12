@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-clerk",
-    "slug": "expo-clerk",
+    "name": "TodoMate",
+    "slug": "todo-mate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3559551f-ca2b-4267-8cb8-bdb976c06135"
+      }
+    },
+    "owner": "raiyan2002"
   }
 }

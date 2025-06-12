@@ -170,7 +170,7 @@ export default function SignUpScreen() {
                 </View>
                 <Text style={styles.title}>Verify Your Email</Text>
                 <Text style={styles.subtitle}>
-                  We've sent a code to {emailAddress}
+                  We are sent a code to {emailAddress}
                 </Text>
               </View>
 

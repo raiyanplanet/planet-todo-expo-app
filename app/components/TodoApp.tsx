@@ -6,6 +6,7 @@ import {
   Clock3,
   Menu,
   Pencil,
+  Plus,
   Search,
   ShoppingBag,
   Trash2,
@@ -394,7 +395,7 @@ const TodoApp = () => {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>No todos yet!</Text>
             <Text style={styles.emptyStateSubtext}>
-              Tap "Add New Task" to get started
+              Tap Add New Task to get started
             </Text>
           </View>
         ) : (
@@ -512,7 +513,7 @@ const TodoApp = () => {
           setEditingTodo(null);
           setShowAddModal(true);
         }}>
-        <Text style={styles.addButtonIcon}>+</Text>
+        <Plus color={"#fff"} />
         <Text style={styles.addButtonText}>Add New Task</Text>
       </TouchableOpacity>
 
@@ -729,21 +730,21 @@ const styles = StyleSheet.create({
   },
 
   date: {
-    fontSize: 16,
+    fontSize: 14,
     color: "rgba(255, 255, 255, 0.8)",
     fontWeight: "400",
     marginBottom: 4,
   },
 
   greeting: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "700",
     color: "#FFFFFF",
     marginBottom: 4,
   },
 
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 24,
     fontWeight: "300",
@@ -753,33 +754,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 16,
-    paddingHorizontal: 16,
+    borderRadius: 10,
+    paddingHorizontal: 12,
     gap: 5,
-    paddingVertical: 12,
+    paddingVertical: 8,
     backdropFilter: "blur(10px)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
 
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 12,
-    opacity: 0.7,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
 
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 18,
     color: "#FFFFFF",
     fontWeight: "400",
   },
 
   progressCard: {
+    position: "sticky",
+    zIndex: 100,
+    backgroundColor: "#0A0E27",
+    top: 0,
     marginVertical: 15,
     paddingVertical: 24,
     paddingHorizontal: 12,
-    borderRadius: 24,
+    borderBottomStartRadius: 10,
+    borderBottomEndRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
@@ -866,7 +866,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: "700",
     marginBottom: 10,
     color: "#4FACFE",
@@ -1050,20 +1050,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#4FACFE",
     margin: 24,
-    paddingVertical: 18,
+    paddingVertical: 13,
     borderRadius: 20,
     shadowColor: "#4FACFE",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 8,
-  },
-
-  addButtonIcon: {
-    fontSize: 24,
-    color: "#FFFFFF",
-    fontWeight: "300",
-    marginRight: 8,
   },
 
   addButtonText: {

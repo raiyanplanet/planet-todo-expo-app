@@ -1,4 +1,5 @@
 import { SignedIn, SignedOut } from "@clerk/clerk-expo";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import React from "react";
@@ -41,7 +42,6 @@ export default function Page() {
         <SignedIn>
           <TodoApp />
         </SignedIn>
-
         <SignedOut>
           <Animated.View
             style={[
