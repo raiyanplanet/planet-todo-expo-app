@@ -24,8 +24,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { supabase } from "../lib/supabase";
 import SignOutButton from "./SignOutButton";
+import TodoDetail from "./TodoDetail";
 
 const { width } = Dimensions.get("window");
 
@@ -56,6 +58,54 @@ const TodoApp = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // open todo detail
+  const openTodoDetail = (todo: Todo) => {
+    setSelectedTodo(todo);
+    setShowDetailModal(true);
+  };
+
+  const closeTodoDetail = () => {
+    setShowDetailModal(false);
+    setSelectedTodo(null);
+  };
+
+  const handleTodoUpdate = async (updatedTodo: Todo) => {
+    try {
+      const todoData = {
+        title: updatedTodo.title,
+        description: updatedTodo.description || null,
+        due_date: updatedTodo.due_date,
+        due_time: updatedTodo.due_time,
+        category: updatedTodo.category,
+      };
+
+      const { data, error } = await supabase
+        .from("todos")
+        .update(todoData)
+        .eq("id", updatedTodo.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating todo:", error);
+        Alert.alert("Error updating todo", error.message);
+      } else {
+        setTodos(
+          todos.map((todo) =>
+            todo.id === updatedTodo.id ? (data as Todo) : todo
+          )
+        );
+        Alert.alert("Success", "Todo updated successfully!");
+      }
+    } catch (err) {
+      console.error("Unexpected error updating todo:", err);
+      Alert.alert("Error", "Failed to update todo");
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -89,20 +139,32 @@ const TodoApp = () => {
 
       if (error) {
         console.error("Error fetching todos:", error);
-        Alert.alert("Error", "Failed to fetch todos: " + error.message);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to fetch todos:" + error.message,
+        });
       } else {
         console.log("Fetched todos:", data);
         setTodos(data as Todo[]);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
-      Alert.alert("Error", "An unexpected error occurred");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "An unexpected error occurred",
+      });
     }
   };
 
   const addTodo = async () => {
     if (formData.title.trim() === "") {
-      Alert.alert("Error", "Please enter a title");
+      Toast.show({
+        type: "error",
+        text1: "Blank Title",
+        text2: "Please enter a title",
+      });
       return;
     }
 
@@ -402,7 +464,10 @@ const TodoApp = () => {
           <>
             {/* Pending Todos */}
             {pendingTodos.map((todo, index) => (
-              <View key={todo.id} style={styles.todoCard}>
+              <TouchableOpacity
+                key={todo.id}
+                style={styles.todoCard}
+                onPress={() => openTodoDetail(todo)}>
                 <View style={styles.todoHeader}>
                   <View
                     style={[
@@ -424,7 +489,8 @@ const TodoApp = () => {
                     )}
                     <View style={styles.todoMeta}>
                       <Text style={styles.todoTime}>
-                        <Clock3 size={11} /> {todo.due_time} -{" "}
+                        <Clock3 size={11} color={"#fff"} opacity={"90%"} />{" "}
+                        {todo.due_time} -{" "}
                         {new Date(todo.due_date || "").toLocaleDateString(
                           "en-US",
                           { month: "short", day: "numeric" }
@@ -440,29 +506,39 @@ const TodoApp = () => {
                       }>
                       <View style={styles.checkboxInner} />
                     </TouchableOpacity>
+                    <View style={styles.todoFooter}>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => openEditModal(todo)}>
+                        <Pencil color={"#B0DB9C"} width={20} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => deleteTodo(todo.id)}>
+                        <Trash2 color={"#E16A54"} width={20} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-
-                <View style={styles.todoFooter}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => openEditModal(todo)}>
-                    <Pencil color={"#fff"} width={30} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => deleteTodo(todo.id)}>
-                    <Trash2 color={"#fff"} width={30} />
-                  </TouchableOpacity>
-                </View>
-              </View>
+                {/* Todo Detail Modal */}
+                {selectedTodo && (
+                  <TodoDetail
+                    todo={selectedTodo}
+                    visible={showDetailModal}
+                    onClose={closeTodoDetail}
+                    onUpdate={handleTodoUpdate}
+                    onDelete={deleteTodo}
+                    onToggleComplete={toggleTodoComplete}
+                  />
+                )}
+              </TouchableOpacity>
             ))}
 
             {/* Completed Section */}
             {completedTodos.length > 0 && (
               <View style={styles.completedSection}>
                 <Text style={styles.sectionTitle}>
-                  <CalendarCheck />
+                  <CalendarCheck color={"#4FACFE"} />
                   Completed
                 </Text>
                 {completedTodos.map((todo) => (
@@ -532,6 +608,7 @@ const TodoApp = () => {
             </Text>
             <View style={{ width: 24 }} />
           </View>
+          <Toast />
 
           <ScrollView style={styles.modalContent}>
             <Text style={styles.label}>Task Title</Text>
@@ -657,14 +734,19 @@ const styles = StyleSheet.create({
 
   header: {
     paddingHorizontal: 14,
+    paddingVertical: 20,
     paddingBottom: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 12,
+    backgroundColor: "rgba(163, 163, 163, 0.07)",
+    borderRadius: 20,
+  },
+  // Add this to your styles
+  todoCardTouchable: {
+    backgroundColor: "rgba(83, 83, 83, 0.08)",
+    borderRadius: 20,
+    marginBottom: 16,
+    // Remove backgroundColor and borderRadius from todoCard style
   },
 
   headerTop: {
@@ -682,7 +764,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backdropFilter: "blur(10px)",
-
     borderColor: "rgba(255, 255, 255, 0.2)",
   },
 
@@ -690,43 +771,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFFFFF",
     fontWeight: "300",
-  },
-
-  homeButton: {
-    padding: 5,
-    color: "#fff",
-  },
-
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    backdropFilter: "blur(10px)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-
-  bellIcon: {
-    fontSize: 18,
-    color: "#FFFFFF",
-  },
-
-  notificationDot: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#FF6B6B",
-    shadowColor: "#FF6B6B",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
   },
 
   date: {
@@ -755,9 +799,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     gap: 5,
-    paddingVertical: 8,
+    paddingVertical: 6,
     backdropFilter: "blur(10px)",
 
     borderColor: "rgba(255, 255, 255, 0.2)",
@@ -843,13 +887,17 @@ const styles = StyleSheet.create({
   },
 
   progressStatus: {
+    width: 90,
     fontSize: 12,
     color: "#4ECDC4",
     fontWeight: "600",
     backgroundColor: "rgba(78, 205, 196, 0.2)",
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
   },
 
   todoList: {
@@ -888,19 +936,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 4,
   },
 
   todoHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 12,
+    display: "flex",
+    alignContent: "center",
   },
 
   categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -912,7 +961,7 @@ const styles = StyleSheet.create({
   },
 
   categoryEmoji: {
-    fontSize: 20,
+    fontSize: 40,
   },
 
   todoContent: {
@@ -921,7 +970,7 @@ const styles = StyleSheet.create({
   },
 
   todoTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "600",
     color: "#FFFFFF",
     marginBottom: 6,
@@ -929,7 +978,7 @@ const styles = StyleSheet.create({
   },
 
   todoDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
     marginBottom: 8,
@@ -947,8 +996,8 @@ const styles = StyleSheet.create({
   },
 
   todoActions: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
   },
 
   checkbox: {
@@ -987,15 +1036,14 @@ const styles = StyleSheet.create({
   todoFooter: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 8,
+    alignItems: "flex-end",
+    gap: 10,
+    marginTop: 18,
   },
 
   actionButton: {
     display: "flex",
-
-    width: 56,
+    width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -1051,7 +1099,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4FACFE",
     margin: 24,
     paddingVertical: 13,
-    borderRadius: 20,
+    borderRadius: 100,
     shadowColor: "#4FACFE",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
@@ -1109,7 +1157,7 @@ const styles = StyleSheet.create({
 
   input: {
     backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 16,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
@@ -1136,7 +1184,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 10,
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderWidth: 2,
     borderColor: "transparent",
@@ -1179,7 +1227,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 16,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderWidth: 1,
@@ -1192,7 +1240,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 16,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderWidth: 1,
@@ -1223,8 +1271,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#4FACFE",
     marginHorizontal: 24,
     marginBottom: 40,
-    paddingVertical: 18,
-    borderRadius: 20,
+    paddingVertical: 14,
+    borderRadius: 10,
     alignItems: "center",
     shadowColor: "#4FACFE",
     shadowOffset: { width: 0, height: 8 },
