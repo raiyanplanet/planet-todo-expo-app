@@ -320,11 +320,11 @@ const TodoApp = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "work":
-        return <BriefcaseBusiness opacity={"90%"} />;
+        return <BriefcaseBusiness opacity={"90%"} color={"#fff"} size={40} />;
       case "shopping":
-        return <ShoppingBag opacity={"90%"} />;
+        return <ShoppingBag opacity={"90%"} color={"#fff"} size={40} />;
       default:
-        return <UserRound opacity={"90%"} />;
+        return <UserRound opacity={"90%"} color={"#fff"} size={40} />;
     }
   };
 
@@ -336,6 +336,17 @@ const TodoApp = () => {
         return ["#9BC09C", "#f5576c"];
       default:
         return ["#4facfe", "#00f2fe"];
+    }
+  };
+
+  const getCategorybg = (category: string) => {
+    switch (category) {
+      case "work":
+        return ["#7B4019", "#764ba2"];
+      case "shopping":
+        return ["#CD5656", "#f5576c"];
+      default:
+        return ["#819A91", "#00f2fe"];
     }
   };
 
@@ -466,16 +477,15 @@ const TodoApp = () => {
             {pendingTodos.map((todo, index) => (
               <TouchableOpacity
                 key={todo.id}
-                style={styles.todoCard}
+                style={[
+                  styles.todoCard,
+                  {
+                    backgroundColor: getCategorybg(todo.category)[0],
+                  },
+                ]}
                 onPress={() => openTodoDetail(todo)}>
                 <View style={styles.todoHeader}>
-                  <View
-                    style={[
-                      styles.categoryIcon,
-                      {
-                        backgroundColor: getCategoryColor(todo.category)[0],
-                      },
-                    ]}>
+                  <View style={styles.categoryIcon}>
                     <Text style={styles.categoryEmoji}>
                       {getCategoryIcon(todo.category)}
                     </Text>
@@ -489,7 +499,7 @@ const TodoApp = () => {
                     )}
                     <View style={styles.todoMeta}>
                       <Text style={styles.todoTime}>
-                        <Clock3 size={11} color={"#fff"} opacity={"90%"} />{" "}
+                        <Clock3 size={12} color={"#fff"} opacity={"82%"} />{" "}
                         {todo.due_time} -{" "}
                         {new Date(todo.due_date || "").toLocaleDateString(
                           "en-US",
@@ -512,25 +522,20 @@ const TodoApp = () => {
                         onPress={() => openEditModal(todo)}>
                         <Pencil color={"#B0DB9C"} width={20} />
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => deleteTodo(todo.id)}>
-                        <Trash2 color={"#E16A54"} width={20} />
-                      </TouchableOpacity>
                     </View>
                   </View>
+                  {/* Todo Detail Modal */}
+                  {selectedTodo && (
+                    <TodoDetail
+                      todo={selectedTodo}
+                      visible={showDetailModal}
+                      onClose={closeTodoDetail}
+                      onUpdate={handleTodoUpdate}
+                      onDelete={deleteTodo}
+                      onToggleComplete={toggleTodoComplete}
+                    />
+                  )}
                 </View>
-                {/* Todo Detail Modal */}
-                {selectedTodo && (
-                  <TodoDetail
-                    todo={selectedTodo}
-                    visible={showDetailModal}
-                    onClose={closeTodoDetail}
-                    onUpdate={handleTodoUpdate}
-                    onDelete={deleteTodo}
-                    onToggleComplete={toggleTodoComplete}
-                  />
-                )}
               </TouchableOpacity>
             ))}
 
@@ -559,20 +564,34 @@ const TodoApp = () => {
                         <Text style={[styles.todoTitle, styles.completedText]}>
                           {todo.title}
                         </Text>
+                        <Text
+                          style={[
+                            styles.todoDescription,
+                            styles.completedText,
+                          ]}>
+                          {todo.due_time} {todo.due_date}
+                        </Text>
                       </View>
-                      <TouchableOpacity
-                        style={[styles.checkbox, styles.checkedBox]}
-                        onPress={() =>
-                          toggleTodoComplete(todo.id, todo.completed)
-                        }>
-                        <Text style={styles.checkmark}>✓</Text>
-                      </TouchableOpacity>
+                      <View
+                        style={{
+                          gap: 10,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                        <TouchableOpacity
+                          style={[styles.checkbox, styles.checkedBox]}
+                          onPress={() =>
+                            toggleTodoComplete(todo.id, todo.completed)
+                          }>
+                          <Text style={styles.checkmark}>✓</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => deleteTodo(todo.id)}>
+                          <Trash2 color={"#E16A54"} width={20} />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => deleteTodo(todo.id)}>
-                      <Trash2 color={"#fff"} />
-                    </TouchableOpacity>
                   </View>
                 ))}
               </View>
@@ -953,11 +972,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
 
   categoryEmoji: {
@@ -993,6 +1007,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.6)",
     fontWeight: "500",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   todoActions: {
@@ -1045,7 +1061,7 @@ const styles = StyleSheet.create({
     display: "flex",
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 10,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
@@ -1099,12 +1115,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4FACFE",
     margin: 24,
     paddingVertical: 13,
-    borderRadius: 100,
-    shadowColor: "#4FACFE",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+    borderRadius: 10,
   },
 
   addButtonText: {

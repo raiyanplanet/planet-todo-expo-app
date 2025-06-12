@@ -179,7 +179,7 @@ export default function SignUpScreen() {
                   <Ionicons
                     name="key-outline"
                     size={20}
-                    color="#667eea"
+                    color="#fff"
                     style={styles.inputIcon}
                   />
                   <TextInput
@@ -264,7 +264,7 @@ export default function SignUpScreen() {
                 <Ionicons
                   name="mail-outline"
                   size={20}
-                  color="#667eea"
+                  color="#fff"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -282,7 +282,7 @@ export default function SignUpScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color="#667eea"
+                  color="#fff"
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -299,7 +299,7 @@ export default function SignUpScreen() {
                   <Ionicons
                     name={showPassword ? "eye-outline" : "eye-off-outline"}
                     size={20}
-                    color="#667eea"
+                    color="#fff"
                   />
                 </TouchableOpacity>
               </View>
@@ -390,13 +390,13 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(155, 155, 155, 0.1)",
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
     height: 52,
     borderWidth: 1.5,
-    borderColor: "#e2e8f0",
+    borderColor: "#rgba(196, 196, 196, 0.1)",
     shadowColor: "#000000",
     shadowOffset: {
       width: 0,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#0f172a",
+    color: "#ffff",
     fontWeight: "400",
   },
   passwordInput: {

@@ -69,7 +69,7 @@ export default function Page() {
                 <TouchableOpacity
                   style={styles.signInButton}
                   activeOpacity={0.8}>
-                  <Text style={styles.signintext}>Sign In</Text>
+                  <Text style={styles.signintext}>Get started</Text>
                 </TouchableOpacity>
               </Link>
 
@@ -85,6 +85,9 @@ export default function Page() {
             <View style={styles.footer}>
               <Text style={styles.footerText}>
                 By continuing, you agree to our Terms and Privacy Policy
+              </Text>
+              <Text style={styles.footerText}>
+                Made by Tawsiful Alam Raiyan
               </Text>
             </View>
           </Animated.View>
